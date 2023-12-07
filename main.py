@@ -17,7 +17,6 @@ class MyWidget(Widget):
 		touch.ud['prev_x'] = touch.x
 		touch.ud['prev_y'] = touch.y
 		touch.ud['decide'] = 0
-		# self.send_data(touch.x, touch.y, 1)
 
 	def on_touch_move(self, touch):
 		touch.ud['line'].points += [touch.x, touch.y]
@@ -35,6 +34,8 @@ class MyWidget(Widget):
 		if touch.ud['double_tap'] == False:
 			if touch.ud['decide'] < 5:
 				self.send_data(touch.x, touch.y, 1)
+		elif touch.ud['double_tap'] == True:
+				self.send_data(touch.x, touch.y, 4)
 
 		self.canvas.remove(touch.ud['line'])
 		del touch.ud['line']
