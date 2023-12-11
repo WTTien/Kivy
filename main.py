@@ -1,15 +1,16 @@
 from kivy.app import App
 from kivy.graphics import Rectangle, Line
 from kivy.uix.widget import Widget
+from kivy.config import Config
+from kivy.clock import Clock
 
 import socket
-import time
 
 class MyWidget(Widget):
 	def on_touch_down(self, touch):
 		if self.collide_point(*touch.pos) and touch.is_double_tap:
 			touch.ud['double_tap'] = True
-			self.send_data(touch.x, touch.y, 3)
+			Clock.schedule_once(lambda dt: self.send_data(touch.x, touch.y, 3), 0.2)
 		else:
 			touch.ud['double_tap'] = False
 		touch.ud['line'] = Line(points=(touch.x, touch.y))
@@ -25,9 +26,10 @@ class MyWidget(Widget):
 		y = touch.y - touch.ud['prev_y']
 		touch.ud['prev_x'] = touch.x
 		touch.ud['prev_y'] = touch.y
-		if touch.ud['double_tap'] == True:
-			self.send_data(x, y, 3)
-		else:
+		if touch.ud['decide'] > 5:
+	#		if touch.ud['double_tap'] == True:
+	#			self.send_data(x, y, 3)
+	#		else:
 			self.send_data(x, y, 2)
 
 	def on_touch_up(self, touch):
@@ -35,7 +37,7 @@ class MyWidget(Widget):
 			if touch.ud['decide'] < 5:
 				self.send_data(touch.x, touch.y, 1)
 		elif touch.ud['double_tap'] == True:
-				self.send_data(touch.x, touch.y, 4)
+				Clock.schedule_once(lambda dt: self.send_data(touch.x, touch.y, 4), 0.1)
 
 		self.canvas.remove(touch.ud['line'])
 		del touch.ud['line']
@@ -43,8 +45,8 @@ class MyWidget(Widget):
 
 	def send_data(self, x, y, mode):
 		serverAddress = ('192.168.137.1', 8080)
-		x = x * 1.5
-		y = -y * 1.5
+		x = x * 5
+		y = -y * 5
 		message = f'{x} , {y} ,{mode} '
 		bytesToSend = message.encode('utf-8')
 
@@ -57,6 +59,7 @@ class MyWidget(Widget):
 			print(f"Error: {e}")
 
 class MyApp(App):
+	Config.set('input','multitouch_double_tap_time', '0.2')
 	def build(self):
 		return MyWidget()
 
