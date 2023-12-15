@@ -9,13 +9,13 @@ import time
 class MyWidget(Widget):
 
 	def on_touch_down(self, touch):
-		touch.ud['start_time'] = time.time()
-
 		touch.ud['line'] = Line(points=(touch.x, touch.y))
 		self.canvas.add(touch.ud['line'])
 		touch.ud['prev_x'] = touch.x
 		touch.ud['prev_y'] = touch.y
 		touch.ud['decide'] = 0
+
+		self.send_data(touch.x, touch.y, 1)
 
 	def on_touch_move(self, touch):
 		touch.ud['line'].points += [touch.x, touch.y]
@@ -28,8 +28,7 @@ class MyWidget(Widget):
 		self.send_data(x, y, 2)
 
 	def on_touch_up(self, touch):
-		if time.time() - touch.ud['start_time'] < 0.5:
-			self.send_data(touch.x, touch.y, 1)
+		self.send_data(touch.x, touch.y , 3)
 
 		self.canvas.remove(touch.ud['line'])
 		del touch.ud['line']
