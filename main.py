@@ -20,12 +20,12 @@ class MyWidget(Widget):
 	def on_touch_move(self, touch):
 		touch.ud['line'].points += [touch.x, touch.y]
 
-		x = touch.x - touch.ud['prev_x']
-		y = touch.y - touch.ud['prev_y']
-		touch.ud['prev_x'] = touch.x
-		touch.ud['prev_y'] = touch.y
+#		x = touch.x - touch.ud['prev_x']
+#		y = touch.y - touch.ud['prev_y']
+#		touch.ud['prev_x'] = touch.x
+#		touch.ud['prev_y'] = touch.y
 
-		self.send_data(x, y, 2)
+		self.send_data(touch.x, touch.y, 2)
 
 	def on_touch_up(self, touch):
 		self.send_data(touch.x, touch.y , 3)
@@ -36,8 +36,8 @@ class MyWidget(Widget):
 
 	def send_data(self, x, y, mode):
 		serverAddress = ('192.168.137.1', 8080)
-		x = x * 2
-		y = -y * 2
+#		x = x
+#		y = -y
 		message = f'{x} , {y} ,{mode} '
 		bytesToSend = message.encode('utf-8')
 
