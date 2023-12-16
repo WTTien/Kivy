@@ -1,6 +1,7 @@
 import socket
 import time
 import pyautogui
+
 import select
 
 pyautogui.FAILSAFE = True
@@ -11,100 +12,82 @@ bufferSize = 1024
 ServerPort = 8080
 ServerIP = '192.168.137.1'
 
-PCsocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-PCsocket.bind((ServerIP, ServerPort))
-PCsocket.setblocking(0)
+print('Start')
 
+mode = 0
+next_time = time.time()
 timeout = 0.01
+interval = 0.00001
+mouseDownTime = 0
+mouseUpTime = 0
+prev_x = 0
+prev_y = 0
 
-print('Server is Up and Listening')
-
-
+mouseIsDown = 0
 
 try:
-
-    mouseIsDown = False
-    clicked = False
-    mouseDownTime = 0
-    mouseUpTime = 0
-    mode = 3
-
     while True:
+        
+        PCsocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        PCsocket.bind((ServerIP, ServerPort))
+        
+        # ready = select.select([PCsocket], [], [], 0.001)
 
-        ready = select.select([PCsocket], [], [], timeout)
+        # if ready[0]:
+        # curr_time = time.time()
 
-        if ready[0]:
-            #start_time = time.perf_counter()
-            message, address = PCsocket.recvfrom(bufferSize)
-            message = message.decode('utf-8')
-            data = message.split(',')
-            x, y, mode = map(float, data)
-            x = int(x)
-            y = int(y)
-            mode = int(mode)
-
-            #print(f"x: {x}, y:{y}, mode: {mode}")
-            # elapsed_time = (time.perf_counter() - start_time)*1000
-            # while elapsed_time <= 100:
-            #     elapsed_time = (time.perf_counter() - start_time)*1000
-
-
-            if mode == 1:
-                mouseDownTime = time.perf_counter()
-                #print(mouseDownTime)
-
-            if mode == 2:
-                pyautogui.moveRel(x, y)
-
-            if mode == 3:
-                mouseUpTime = time.perf_counter()
-                #print(mouseUpTime)
-                if ((mouseUpTime - mouseDownTime)*1000 < 300) and ((mouseUpTime - mouseDownTime)*1000 > 0):
-                    pyautogui.click()
-                    print("Clicked")
-                elif ((mouseUpTime - mouseDownTime)*1000 > 300):
-                    pyautogui.mouseUp()
-                    print("Mouse Up")
-                    mouseIsDown = False
+        # if curr_time >= next_time:
             
-        else:
-            if((time.perf_counter() - mouseDownTime)*1000 > 300):
-            #print("Enter here?")
+
+
+        message, address = PCsocket.recvfrom(bufferSize)
+        message = message.decode('utf-8')
+        data = message.split(',')
+        touch_x, touch_y, mode = map(float, data)
+        touch_x = int(touch_x)
+        touch_y = int(touch_y)
+        
+        mode = int(mode)
+
+
+        if mode == 1:
+            prev_x = touch_x
+            prev_y = touch_y
+            mouseDownTime = time.time()
+
+        elif mode == 2:
+            x = (touch_x - prev_x) * 2
+            y = -(touch_y - prev_y) * 2
+            prev_x = touch_x
+            prev_y = touch_y
+            pyautogui.moveRel(x, y)
+
+
+        elif mode == 3:
+            mouseUpTime = time.time()
+
+            if((mouseUpTime - mouseDownTime)*1000 < 200):
+                pyautogui.click()
+                print("Clicked")
+
+            elif((mouseUpTime - mouseDownTime)*1000 > 200):
+                pyautogui.mouseUp()
+                mouseIsDown = False
+                print("Mouse Up")
+                    
+        
+    #else:
+        if(time.time() - mouseDownTime) * 1000 > 200:
                 if mode != 3:
                     if mouseIsDown == False:
                         pyautogui.mouseDown()
                         mouseIsDown = True
-                        print("Mouse Down")
-
-        
-        # if time.time() - start_time > 0.0001:        
-        #     if mode == 1:
-        #         pyautogui.click()
-
-        #     elif mode == 2:
-        #         pyautogui.moveRel(x, y)
-
-        #     elif mode == 3:
-        #         if mouseIsDown == True:
-        #             pyautogui.moveRel(x, y)
-        #         elif mouseIsDown == False:
-        #             time.sleep(0.3)
-        #             pyautogui.mouseDown()
-        #             mouseIsDown = True
-        #             pyautogui.moveRel(x, y)
+                        print("Mouse Down")    
                 
-        #     elif mode == 4:
-        #         pyautogui.doubleClick()
+                
+                
+                #next_time = curr_time + interval
 
-        #     elif mode == 5:
-        #         pyautogui.mouseUp()
-        #         mouseIsDown = False
-
-        # else:
-        #     pass
-
-        # print(f"x: {x}, y:{y}, mode: {mode}")
-        # print('Client Address', address)
 
 except KeyboardInterrupt:
     print("CTRL + C detected. Exiting...")       
