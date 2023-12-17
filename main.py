@@ -11,11 +11,14 @@ class MyWidget(Widget):
 	def on_touch_down(self, touch):
 		touch.ud['line'] = Line(points=(touch.x, touch.y))
 		self.canvas.add(touch.ud['line'])
+		touch.ud['decide'] = 0
 		self.send_data(touch.x, touch.y, 1)
 
 	def on_touch_move(self, touch):
 		touch.ud['line'].points += [touch.x, touch.y]
-		self.send_data(touch.x, touch.y, 2)
+		touch.ud['decide'] += 1
+		if touch.ud['decide'] > 5:
+			self.send_data(touch.x, touch.y, 2)
 
 	def on_touch_up(self, touch):
 		self.send_data(touch.x, touch.y , 3)
